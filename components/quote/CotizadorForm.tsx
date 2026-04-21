@@ -29,7 +29,7 @@ export default function CotizadorForm({ productos }: { productos: Producto[] }) 
 
   const total = productos
     .filter(p => seleccionados.includes(p.id))
-    .reduce((acc, p) => acc + (p.precio + p.precio_instalacion) * cantidad, 0)
+    .reduce((acc, p) => acc + (p.precio * cantidad) + p.precio_instalacion, 0)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
