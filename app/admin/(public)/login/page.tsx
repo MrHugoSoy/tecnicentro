@@ -2,7 +2,6 @@
 
 import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 
 function LoginForm() {
   const router = useRouter()
@@ -19,11 +18,15 @@ function LoginForm() {
     setLoading(true)
     setError('')
 
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password })
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
 
-    if (err) {
-      console.log('Supabase error:', err.message, err.status, err)
-      setError('Credenciales inválidas.')
+    if (!res.ok) {
+      const data = await res.json()
+      setError(data.error ?? 'Credenciales inválidas.')
       setLoading(false)
       return
     }
