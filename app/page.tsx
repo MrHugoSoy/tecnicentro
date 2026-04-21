@@ -2,6 +2,8 @@ import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { ArrowRight, CheckCircle, Star, Wrench, Calendar, Calculator } from 'lucide-react'
+import { createServerClient } from '@/lib/supabase-server'
+import type { Producto } from '@/types'
 
 const serviciosDestacados = [
   {
@@ -36,7 +38,15 @@ const beneficios = [
   'Paseo Solidaridad #9225 — Salida a Salamanca',
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createServerClient()
+  const { data: productos } = await supabase
+    .from('productos')
+    .select('id, nombre, medida, precio, imagen_url')
+    .eq('activo', true)
+    .order('nombre')
+    .limit(8)
+
   return (
     <>
       <Navbar />
@@ -113,6 +123,52 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Preview catálogo */}
+      {productos && productos.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 py-20">
+          <div className="text-center mb-12">
+            <span className="badge-yellow mb-3 inline-block">CATÁLOGO</span>
+            <h2 className="section-title mb-2">NUESTRAS LLANTAS</h2>
+            <p className="text-gray-500">Productos originales Goodyear con garantía de fábrica.</p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+            {(productos as Pick<Producto, 'id' | 'nombre' | 'medida' | 'precio' | 'imagen_url'>[]).map(p => (
+              <Link key={p.id} href="/catalogo" className="card group overflow-hidden hover:-translate-y-1 transition-transform duration-200">
+                <div className="bg-gray-100 h-40 flex items-center justify-center overflow-hidden">
+                  {p.imagen_url ? (
+                    <img
+                      src={p.imagen_url}
+                      alt={p.nombre}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-full">
+                      <span className="font-display text-3xl text-gray-300 tracking-widest">
+                        {p.nombre.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <p className="font-semibold text-sm leading-tight mb-1 line-clamp-2">{p.nombre}</p>
+                  <p className="text-xs text-gray-400 mb-2">{p.medida}</p>
+                  <p className="font-display tracking-wider text-brand-black">
+                    ${p.precio.toLocaleString('es-MX')}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <Link href="/catalogo" className="btn-primary inline-flex items-center gap-2">
+              Ver catálogo completo <ArrowRight size={18} />
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Beneficios */}
       <section className="bg-brand-black text-white py-20">
