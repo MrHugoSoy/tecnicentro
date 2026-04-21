@@ -9,8 +9,9 @@ export const revalidate = 60
 export default async function CatalogoPage({
   searchParams,
 }: {
-  searchParams: { categoria?: string; medida?: string; q?: string }
+  searchParams: Promise<{ categoria?: string; medida?: string; q?: string }>
 }) {
+  const { categoria, medida, q } = await searchParams
   const supabase = await createServerClient()
 
   let query = supabase
@@ -19,14 +20,14 @@ export default async function CatalogoPage({
     .eq('activo', true)
     .order('nombre')
 
-  if (searchParams.categoria) {
-    query = query.eq('categoria', searchParams.categoria)
+  if (categoria) {
+    query = query.eq('categoria', categoria)
   }
-  if (searchParams.medida) {
-    query = query.ilike('medida', `%${searchParams.medida}%`)
+  if (medida) {
+    query = query.ilike('medida', `%${medida}%`)
   }
-  if (searchParams.q) {
-    query = query.ilike('nombre', `%${searchParams.q}%`)
+  if (q) {
+    query = query.ilike('nombre', `%${q}%`)
   }
 
   const { data: productos } = await query
