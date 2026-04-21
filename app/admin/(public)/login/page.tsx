@@ -22,6 +22,7 @@ function LoginForm() {
     const { error: err } = await supabase.auth.signInWithPassword({ email, password })
 
     if (err) {
+      console.log('Supabase error:', err.message, err.status, err)
       setError('Credenciales inválidas.')
       setLoading(false)
       return
