@@ -1,25 +1,47 @@
 'use client'
 
-import { Suspense } from 'react'
-import { useActionState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { loginAction } from './actions'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 
 function LoginForm() {
-  const [error, formAction, pending] = useActionState(loginAction, null)
+  const router = useRouter()
   const searchParams = useSearchParams()
   const resetSuccess = searchParams.get('reset') === 'success'
 
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    const { error: err } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (err) {
+      setError('Credenciales inválidas.')
+      setLoading(false)
+      return
+    }
+
+    router.refresh()
+    router.push('/admin')
+  }
+
   return (
-    <form action={formAction} className="bg-white p-8 space-y-4">
+    <form onSubmit={handleSubmit} className="bg-white p-8 space-y-4">
       <h1 className="font-display text-2xl tracking-wider mb-6 text-brand-black">INICIAR SESIÓN</h1>
 
       <div>
         <label className="text-sm font-semibold block mb-1">Email</label>
         <input
           type="email"
-          name="email"
           className="input-field"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
           required
           autoFocus
         />
@@ -29,8 +51,9 @@ function LoginForm() {
         <label className="text-sm font-semibold block mb-1">Contraseña</label>
         <input
           type="password"
-          name="password"
           className="input-field"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
           required
         />
       </div>
@@ -49,10 +72,10 @@ function LoginForm() {
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={loading}
         className="btn-primary w-full text-center disabled:opacity-50 mt-2"
       >
-        {pending ? 'ENTRANDO...' : 'ENTRAR'}
+        {loading ? 'ENTRANDO...' : 'ENTRAR'}
       </button>
     </form>
   )
