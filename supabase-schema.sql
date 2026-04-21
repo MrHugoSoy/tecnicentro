@@ -75,13 +75,14 @@ CREATE TABLE admins (
 -- ============================================
 -- Insertar servicios por defecto
 -- ============================================
+DELETE FROM servicios;
 INSERT INTO servicios (nombre, descripcion, duracion_minutos, precio) VALUES
-  ('Montaje y balanceo (4 llantas)', 'Desmontaje de llantas viejas, montaje de llantas nuevas y balanceo de las 4 ruedas', 60, 600.00),
-  ('Balanceo (4 ruedas)', 'Balanceo de las 4 ruedas para eliminar vibración', 45, 320.00),
-  ('Alineación', 'Alineación computarizada de dirección', 45, 350.00),
-  ('Inflado de llantas', 'Revisión y ajuste de presión de las 4 llantas', 15, 0.00),
-  ('Revisión general', 'Inspección visual de llantas, frenos y suspensión', 30, 150.00),
-  ('Reparación de ponchadura', 'Reparación de ponchadura con parche o plug', 30, 120.00);
+  ('Alineación y balanceo', 'Alineación computarizada y balanceo de las 4 ruedas', 60, 450.00),
+  ('Suspensión', 'Revisión y reparación de suspensión', 90, 600.00),
+  ('Amortiguadores', 'Revisión e instalación de amortiguadores', 90, 0.00),
+  ('Llantas', 'Montaje e instalación de llantas', 60, 300.00),
+  ('Afinación', 'Afinación mayor o menor del motor', 120, 800.00),
+  ('Frenos', 'Revisión y reparación del sistema de frenos', 60, 500.00);
 
 -- ============================================
 -- Row Level Security

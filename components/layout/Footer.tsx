@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Phone, MapPin, Clock } from 'lucide-react'
+import { Phone, MapPin, Clock, Mail } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -13,6 +13,7 @@ export default function Footer() {
           <p className="text-sm leading-relaxed">
             Distribuidor autorizado Goodyear en Irapuato, Guanajuato. Llantas, rines y servicios de calidad.
           </p>
+          <p className="text-xs mt-3 text-gray-500">Tecnicentro Solidaridad</p>
         </div>
 
         {/* Links */}
@@ -39,11 +40,17 @@ export default function Footer() {
           <ul className="space-y-3 text-sm">
             <li className="flex items-start gap-2">
               <Phone size={16} className="mt-0.5 text-brand-yellow flex-shrink-0" />
-              <span>(462) 000-0000</span>
+              <span>462 627 65 33 / 462 627 65 34</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Mail size={16} className="mt-0.5 text-brand-yellow flex-shrink-0" />
+              <a href="mailto:tecnisolidaridad@hotmail.com" className="hover:text-brand-yellow transition-colors">
+                tecnisolidaridad@hotmail.com
+              </a>
             </li>
             <li className="flex items-start gap-2">
               <MapPin size={16} className="mt-0.5 text-brand-yellow flex-shrink-0" />
-              <span>Av. Principal #123, Irapuato, Gto.</span>
+              <span>Paseo Solidaridad #9225, Irapuato, Gto.<br />(Salida a Salamanca)</span>
             </li>
             <li className="flex items-start gap-2">
               <Clock size={16} className="mt-0.5 text-brand-yellow flex-shrink-0" />

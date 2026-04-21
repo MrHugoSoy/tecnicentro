@@ -17,7 +17,7 @@ export default function Navbar() {
     <header className="bg-brand-black text-white sticky top-0 z-50">
       {/* Top strip */}
       <div className="bg-brand-yellow text-brand-black text-xs font-body font-semibold text-center py-1 tracking-wide">
-        📞 Irapuato, Gto. — (462) 000-0000 &nbsp;|&nbsp; Lun–Sáb 8am–7pm
+        📞 462 627 65 33 &nbsp;|&nbsp; 462 627 65 34 &nbsp;|&nbsp; ✉ tecnisolidaridad@hotmail.com &nbsp;|&nbsp; Lun–Sáb 8am–7pm
       </div>
 
       <nav className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">

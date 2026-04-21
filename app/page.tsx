@@ -29,11 +29,11 @@ const serviciosDestacados = [
 
 const beneficios = [
   'Distribuidor autorizado Goodyear',
+  'Alineación y balanceo computarizado',
+  'Suspensión, amortiguadores y frenos',
   'Instalación profesional en el momento',
   'Garantía de fábrica en todos los productos',
-  'Equipo de balanceo computarizado',
-  'Más de 15 años de experiencia',
-  'Precios competitivos en Irapuato',
+  'Paseo Solidaridad #9225 — Salida a Salamanca',
 ]
 
 export default function HomePage() {
@@ -53,14 +53,14 @@ export default function HomePage() {
 
         <div className="relative max-w-7xl mx-auto px-4 py-20 grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <span className="badge-yellow mb-4 inline-block">Irapuato, Guanajuato</span>
+            <span className="badge-yellow mb-4 inline-block">Paseo Solidaridad #9225, Irapuato, Gto.</span>
             <h1 className="font-display text-6xl md:text-7xl tracking-wider leading-none mb-6">
               LAS LLANTAS<br />
               <span className="text-brand-yellow">QUE TU AUTO</span><br />
               NECESITA
             </h1>
             <p className="text-gray-300 text-lg mb-8 max-w-md leading-relaxed">
-              Distribuidor autorizado Goodyear en Irapuato. Catálogo completo, cotización instantánea y citas sin esperas.
+              Distribuidor autorizado Goodyear en Irapuato. Alineación, balanceo, frenos, suspensión y más. Cotización instantánea y citas sin esperas.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/cotizador" className="btn-primary text-center">
