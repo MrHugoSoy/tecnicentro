@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-brand-yellow text-brand-black font-display tracking-wider text-lg px-6 py-3 
+           hover:bg-yellow-400 transition-all duration-200 active:scale-95 inline-block;
+  }
+
+  .btn-outline {
+    @apply border-2 border-brand-black text-brand-black font-display tracking-wider text-lg px-6 py-3
+           hover:bg-brand-black hover:text-brand-yellow transition-all duration-200 inline-block;
+  }
+
+  .section-title {
+    @apply font-display text-4xl md:text-5xl tracking-wider text-brand-black;
+  }
+
+  .card {
+    @apply bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow;
+  }
+
+  .badge {
+    @apply text-xs font-body font-semibold px-2 py-1 inline-block;
+  }
+
+  .badge-yellow {
+    @apply badge bg-brand-yellow text-brand-black;
+  }
+
+  .badge-black {
+    @apply badge bg-brand-black text-white;
+  }
+
+  .input-field {
+    @apply w-full border border-gray-300 bg-white px-4 py-3 text-brand-black
+           focus:outline-none focus:border-brand-black transition-colors font-body;
+  }
+}
+
+/* Diagonal hero stripe */
+.hero-stripe::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: #F5F5F0;
+  clip-path: polygon(0 100%, 100% 0, 100% 100%);
+}
