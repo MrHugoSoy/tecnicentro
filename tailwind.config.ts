@@ -11,8 +11,8 @@ const config: Config = {
       colors: {
         brand: {
           yellow: '#FFD700',
-          black: '#0A0A0A',
-          gray: '#1A1A1A',
+          black: '#00205B',
+          gray: '#00205B',
           light: '#F5F5F0',
         }
       },
