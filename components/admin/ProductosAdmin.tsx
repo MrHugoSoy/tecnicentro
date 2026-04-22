@@ -239,7 +239,10 @@ export default function ProductosAdmin({ productos: initial }: { productos: Prod
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Producto</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden lg:table-cell">Marca</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden xl:table-cell">Código</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden md:table-cell">Medida</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden xl:table-cell">Origen</th>
               <th className="text-right px-4 py-3 font-semibold text-gray-600">Precio</th>
               <th className="text-right px-4 py-3 font-semibold text-gray-600 hidden sm:table-cell">Stock</th>
               <th className="text-center px-4 py-3 font-semibold text-gray-600">Estado</th>
@@ -253,7 +256,10 @@ export default function ProductosAdmin({ productos: initial }: { productos: Prod
                   <p className="font-semibold">{p.nombre}</p>
                   <p className="text-xs text-gray-400">{p.categoria}</p>
                 </td>
+                <td className="px-4 py-3 hidden lg:table-cell text-gray-600 text-xs">{p.marca}</td>
+                <td className="px-4 py-3 hidden xl:table-cell text-gray-400 text-xs">{p.codigo ?? '—'}</td>
                 <td className="px-4 py-3 hidden md:table-cell text-gray-600">{p.medida}</td>
+                <td className="px-4 py-3 hidden xl:table-cell text-gray-500 text-xs">{p.origen ?? '—'}</td>
                 <td className="px-4 py-3 text-right">
                   <p className="font-display tracking-wider">${p.precio.toLocaleString('es-MX')}</p>
                   {p.precio_instalacion > 0 && (
