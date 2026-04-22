@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { CheckCircle, AlertCircle, Trash2 } from 'lucide-react'
+import { CheckCircle, AlertCircle, Sparkles } from 'lucide-react'
 
 type ProductoParsed = {
   marca: string
@@ -18,70 +18,40 @@ type ProductoParsed = {
   imagen_url: null
 }
 
-function parsearPrecio(raw: string): number {
-  return parseFloat(raw.replace(/[$,\s]/g, '')) || 0
-}
-
-function extraerMedida(nombre: string): string {
-  const match = nombre.match(/\d{2,3}\/\d{2,3}[A-Z]?\d{2,3}[A-Z]*/i)
-  return match ? match[0].toUpperCase() : ''
-}
-
-function parsearLinea(linea: string): ProductoParsed | null {
-  const cols = linea.split('\t').map(c => c.trim())
-
-  // Formato 5 cols: MARCA | CODIGO | NOMBRE | ORIGEN | PRECIO
-  // Formato 4 cols: MARCA | CODIGO | NOMBRE | PRECIO
-  if (cols.length < 4) return null
-
-  const marca = cols[0]
-  const codigo = cols[1] || null
-  const nombre = cols[2]
-
-  // Detectar si col[3] es el precio (formato 4 cols) o el origen (formato 5 cols)
-  const esPrecioEnCol3 = cols.length === 4 || /[$\d]/.test(cols[3])
-  const precio = parsearPrecio(esPrecioEnCol3 ? cols[3] : cols[4] ?? '')
-
-  if (!marca || !nombre || precio <= 0) return null
-
-  return {
-    marca,
-    codigo,
-    nombre,       // solo col[2], nunca incluye origen
-    medida: extraerMedida(nombre),
-    origen: null, // cols[3] se ignora siempre
-    precio,
-    categoria: 'llanta',
-    precio_instalacion: 0,
-    stock: 0,
-    activo: true,
-    imagen_url: null,
-  }
-}
-
 export default function ImportarPage() {
   const [texto, setTexto] = useState('')
   const [preview, setPreview] = useState<ProductoParsed[]>([])
+  const [parseando, setParseando] = useState(false)
   const [importando, setImportando] = useState(false)
   const [resultado, setResultado] = useState<{ ok: number; err: number } | null>(null)
   const [error, setError] = useState('')
 
-  // Estado modal borrar inventario
-  const [modalBorrar, setModalBorrar] = useState(false)
-  const [passConfirm, setPassConfirm] = useState('')
-  const [borrando, setBorrando] = useState(false)
-  const [errorBorrar, setErrorBorrar] = useState('')
-  const [borradoOk, setBorradoOk] = useState(false)
-
-  const parsear = () => {
-    setResultado(null)
+  const parsearConIA = async () => {
+    if (!texto.trim()) return
+    setParseando(true)
     setError('')
-    const lineas = texto.split('\n').filter(l => l.trim())
-    const productos = lineas.map(parsearLinea).filter(Boolean) as ProductoParsed[]
-    if (productos.length === 0) {
-      setError('No se detectaron productos. Verifica que el formato sea correcto (columnas separadas por Tab).')
+    setResultado(null)
+    setPreview([])
+
+    try {
+      const res = await fetch('/api/ai/parse-productos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texto }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        setError(data.error ?? 'Error al conectar con la IA.')
+      } else if (data.productos.length === 0) {
+        setError('No se detectaron productos. Verifica que el formato sea correcto.')
+      } else {
+        setPreview(data.productos)
+      }
+    } catch {
+      setError('Error de red al contactar la IA.')
+    } finally {
+      setParseando(false)
     }
-    setPreview(productos)
   }
 
   const importar = async () => {
@@ -106,46 +76,11 @@ export default function ImportarPage() {
     setImportando(false)
   }
 
-  const confirmarBorrado = async () => {
-    if (!passConfirm) return
-    setBorrando(true)
-    setErrorBorrar('')
-
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user?.email) {
-      setErrorBorrar('No se pudo obtener la sesión.')
-      setBorrando(false)
-      return
-    }
-
-    const { error: authErr } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: passConfirm,
-    })
-
-    if (authErr) {
-      setErrorBorrar('Contraseña incorrecta.')
-      setBorrando(false)
-      return
-    }
-
-    const { error: delErr } = await supabase.from('productos').delete().neq('id', 0)
-
-    if (delErr) {
-      setErrorBorrar('Error al borrar: ' + delErr.message)
-    } else {
-      setBorradoOk(true)
-      setModalBorrar(false)
-    }
-    setPassConfirm('')
-    setBorrando(false)
-  }
-
   return (
     <div className="max-w-5xl">
       <h1 className="font-display text-4xl tracking-wider mb-2">IMPORTAR PRODUCTOS</h1>
       <p className="text-gray-500 mb-8">
-        Pega datos copiados de Excel. Formato esperado (columnas separadas por Tab):<br />
+        Pega datos copiados de Excel. La IA extraerá automáticamente marca, código, nombre, medida, país de origen y precio.<br />
         <code className="text-xs bg-gray-100 px-2 py-1 mt-1 inline-block">MARCA → CÓDIGO → NOMBRE → ORIGEN → PRECIO</code>
       </p>
 
@@ -161,11 +96,12 @@ export default function ImportarPage() {
         />
         <div className="flex gap-3 mt-4">
           <button
-            onClick={parsear}
-            disabled={!texto.trim()}
-            className="btn-primary text-sm py-2 px-6 disabled:opacity-50"
+            onClick={parsearConIA}
+            disabled={!texto.trim() || parseando}
+            className="btn-primary text-sm py-2 px-6 disabled:opacity-50 flex items-center gap-2"
           >
-            Parsear
+            <Sparkles size={15} />
+            {parseando ? 'Analizando con IA...' : 'Parsear con IA'}
           </button>
           {preview.length > 0 && (
             <button
@@ -196,13 +132,6 @@ export default function ImportarPage() {
         </div>
       )}
 
-      {borradoOk && (
-        <div className="flex items-start gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm mb-4">
-          <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
-          Inventario borrado correctamente.
-        </div>
-      )}
-
       {/* Preview */}
       {preview.length > 0 && (
         <div className="card overflow-hidden mb-8">
@@ -219,6 +148,7 @@ export default function ImportarPage() {
                   <th className="text-left px-4 py-2 font-semibold text-gray-600">Código</th>
                   <th className="text-left px-4 py-2 font-semibold text-gray-600">Nombre</th>
                   <th className="text-left px-4 py-2 font-semibold text-gray-600">Medida</th>
+                  <th className="text-left px-4 py-2 font-semibold text-gray-600">Origen</th>
                   <th className="text-right px-4 py-2 font-semibold text-gray-600">Precio</th>
                 </tr>
               </thead>
@@ -235,6 +165,9 @@ export default function ImportarPage() {
                         : <span className="text-xs text-orange-500">Sin medida</span>
                       }
                     </td>
+                    <td className="px-4 py-2 text-xs text-gray-500">
+                      {p.origen ? <span className="badge bg-gray-100 text-gray-600 text-xs">🌎 {p.origen}</span> : <span className="text-gray-300">—</span>}
+                    </td>
                     <td className="px-4 py-2 text-right font-display tracking-wider">
                       ${p.precio.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                     </td>
@@ -242,58 +175,6 @@ export default function ImportarPage() {
                 ))}
               </tbody>
             </table>
-          </div>
-        </div>
-      )}
-
-      {/* Zona peligrosa */}
-      <div className="border border-red-200 p-6 mt-8">
-        <h2 className="font-display tracking-wider text-red-600 mb-1">ZONA PELIGROSA</h2>
-        <p className="text-sm text-gray-500 mb-4">Esta acción elimina todos los productos del catálogo de forma permanente.</p>
-        <button
-          onClick={() => { setModalBorrar(true); setErrorBorrar(''); setPassConfirm(''); setBorradoOk(false) }}
-          className="flex items-center gap-2 bg-red-600 text-white text-sm font-semibold px-4 py-2 hover:bg-red-700 transition-colors"
-        >
-          <Trash2 size={15} /> Borrar todo el inventario
-        </button>
-      </div>
-
-      {/* Modal confirmación */}
-      {modalBorrar && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-sm p-6">
-            <h3 className="font-display text-xl tracking-wider text-red-600 mb-2">CONFIRMAR BORRADO</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Se eliminarán <strong>todos los productos</strong> permanentemente. Ingresa tu contraseña para continuar.
-            </p>
-            <input
-              type="password"
-              className="input-field mb-3"
-              placeholder="Tu contraseña"
-              value={passConfirm}
-              onChange={e => { setPassConfirm(e.target.value); setErrorBorrar('') }}
-              autoFocus
-            />
-            {errorBorrar && (
-              <p className="text-xs text-red-600 mb-3 flex items-center gap-1">
-                <AlertCircle size={13} /> {errorBorrar}
-              </p>
-            )}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setModalBorrar(false)}
-                className="flex-1 border border-gray-300 text-sm py-2 hover:bg-gray-50 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmarBorrado}
-                disabled={!passConfirm || borrando}
-                className="flex-1 bg-red-600 text-white text-sm py-2 hover:bg-red-700 disabled:opacity-50 transition-colors font-semibold"
-              >
-                {borrando ? 'Verificando...' : 'Borrar todo'}
-              </button>
-            </div>
           </div>
         </div>
       )}
