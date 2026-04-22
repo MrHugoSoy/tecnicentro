@@ -47,8 +47,9 @@ export default function ImportarPage() {
       } else {
         setPreview(data.productos)
       }
-    } catch {
-      setError('Error de red al contactar la IA.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setError(`Error de red: ${msg}`)
     } finally {
       setParseando(false)
     }
