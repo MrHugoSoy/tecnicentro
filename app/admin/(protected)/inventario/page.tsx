@@ -7,7 +7,7 @@ export default async function AdminInventarioPage() {
   const supabase = await createServerClient()
   const { data: productos } = await supabase
     .from('productos')
-    .select('id, nombre, medida, categoria, stock, activo')
+    .select('id, nombre, medida, categoria, origen, stock, activo')
     .eq('activo', true)
     .order('stock')
 

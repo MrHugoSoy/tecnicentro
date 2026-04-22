@@ -14,6 +14,7 @@ CREATE TABLE productos (
   precio_instalacion DECIMAL(10,2) DEFAULT 0,
   stock INT NOT NULL DEFAULT 0,
   imagen_url TEXT,
+  origen TEXT,
   categoria TEXT NOT NULL DEFAULT 'llanta', -- llanta, rin, accesorio
   activo BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),

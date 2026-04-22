@@ -16,6 +16,7 @@ const defaultForm: FormData = {
   precio_instalacion: 0,
   stock: 0,
   imagen_url: null,
+  origen: null,
   categoria: 'llanta',
   activo: true,
 }
@@ -47,7 +48,7 @@ export default function ProductosAdmin({ productos: initial }: { productos: Prod
       nombre: p.nombre, marca: p.marca, medida: p.medida,
       descripcion: p.descripcion ?? '', precio: p.precio,
       precio_instalacion: p.precio_instalacion, stock: p.stock,
-      imagen_url: p.imagen_url, categoria: p.categoria, activo: p.activo,
+      imagen_url: p.imagen_url, origen: p.origen, categoria: p.categoria, activo: p.activo,
     })
     setImageFile(null)
     setImagePreview(p.imagen_url ?? null)
@@ -197,6 +198,15 @@ export default function ProductosAdmin({ productos: initial }: { productos: Prod
                 {uploadError && (
                   <p className="mt-1 text-xs text-red-600">{uploadError}</p>
                 )}
+              </div>
+              <div>
+                <label className="text-sm font-semibold block mb-1">País de origen</label>
+                <input
+                  className="input-field"
+                  value={form.origen ?? ''}
+                  onChange={e => setForm(f => ({ ...f, origen: e.target.value || null }))}
+                  placeholder="Ej: México, Estados Unidos, China..."
+                />
               </div>
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="activo" checked={form.activo} onChange={e => setForm(f => ({ ...f, activo: e.target.checked }))} className="accent-brand-black" />

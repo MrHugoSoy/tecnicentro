@@ -9,6 +9,7 @@ type ProductoStock = {
   nombre: string
   medida: string
   categoria: string
+  origen: string | null
   stock: number
   activo: boolean
 }
@@ -66,7 +67,7 @@ export default function InventarioAdmin({ productos: initial }: { productos: Pro
       <tr key={p.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${modificado ? 'bg-yellow-50' : ''}`}>
         <td className="px-4 py-3">
           <p className="font-semibold text-sm">{p.nombre}</p>
-          <p className="text-xs text-gray-400">{p.medida} · {p.categoria}</p>
+          <p className="text-xs text-gray-400">{p.medida} · {p.categoria}{p.origen ? ` · ${p.origen}` : ''}</p>
         </td>
         <td className="px-4 py-3">
           <div className="flex items-center gap-2">

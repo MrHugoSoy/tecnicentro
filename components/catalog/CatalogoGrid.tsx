@@ -105,7 +105,12 @@ function ProductoCard({ producto: p }: { producto: Producto }) {
       </div>
 
       <div className="p-4">
-        <span className="badge-yellow text-xs mb-2">{p.medida}</span>
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <span className="badge-yellow text-xs">{p.medida}</span>
+          {p.origen && (
+            <span className="badge bg-gray-100 text-gray-500 text-xs">🌎 {p.origen}</span>
+          )}
+        </div>
         <h3 className="font-display text-lg tracking-wider mb-1 leading-tight">{p.nombre}</h3>
         {p.descripcion && (
           <p className="text-xs text-gray-500 mb-3 line-clamp-2">{p.descripcion}</p>

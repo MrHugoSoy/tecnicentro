@@ -8,6 +8,7 @@ export type Producto = {
   precio_instalacion: number
   stock: number
   imagen_url: string | null
+  origen: string | null
   categoria: 'llanta' | 'rin' | 'accesorio'
   activo: boolean
   created_at: string
