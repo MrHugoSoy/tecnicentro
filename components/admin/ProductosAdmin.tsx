@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Producto } from '@/types'
-import { Plus, Pencil, Trash2, X } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Search } from 'lucide-react'
 
 type FormData = Omit<Producto, 'id' | 'created_at' | 'updated_at'>
 
@@ -24,6 +24,7 @@ const defaultForm: FormData = {
 
 export default function ProductosAdmin({ productos: initial }: { productos: Producto[] }) {
   const [productos, setProductos] = useState(initial)
+  const [busqueda, setBusqueda] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
   const [form, setForm] = useState<FormData>(defaultForm)
@@ -127,10 +128,36 @@ export default function ProductosAdmin({ productos: initial }: { productos: Prod
     if (!error) setProductos(prev => prev.map(x => x.id === p.id ? { ...x, activo: !p.activo } : x))
   }
 
+  const productosFiltrados = productos.filter(p => {
+    const q = busqueda.toLowerCase()
+    return (
+      p.nombre.toLowerCase().includes(q) ||
+      p.marca.toLowerCase().includes(q) ||
+      p.medida.toLowerCase().includes(q) ||
+      (p.codigo ?? '').toLowerCase().includes(q) ||
+      (p.origen ?? '').toLowerCase().includes(q)
+    )
+  })
+
   return (
     <div>
-      <div className="flex justify-end mb-6">
-        <button onClick={abrirNuevo} className="btn-primary flex items-center gap-2 text-sm py-2">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="relative flex-1 max-w-sm">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+            placeholder="Buscar por nombre, marca, medida, código..."
+            className="input-field pl-9 text-sm"
+          />
+          {busqueda && (
+            <button onClick={() => setBusqueda('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <X size={14} />
+            </button>
+          )}
+        </div>
+        <button onClick={abrirNuevo} className="btn-primary flex items-center gap-2 text-sm py-2 flex-shrink-0">
           <Plus size={16} /> Nuevo producto
         </button>
       </div>
@@ -250,7 +277,7 @@ export default function ProductosAdmin({ productos: initial }: { productos: Prod
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {productos.map(p => (
+            {productosFiltrados.map(p => (
               <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-4 py-3">
                   <p className="font-semibold">{p.nombre}</p>
@@ -294,10 +321,14 @@ export default function ProductosAdmin({ productos: initial }: { productos: Prod
           </tbody>
         </table>
 
-        {productos.length === 0 && (
+        {productosFiltrados.length === 0 && (
           <div className="text-center py-12 text-gray-400">
-            <p className="font-display text-xl tracking-wider">Sin productos</p>
-            <p className="text-sm mt-2">Agrega tu primer producto con el botón de arriba</p>
+            <p className="font-display text-xl tracking-wider">
+              {busqueda ? 'Sin resultados' : 'Sin productos'}
+            </p>
+            <p className="text-sm mt-2">
+              {busqueda ? `No se encontró "${busqueda}"` : 'Agrega tu primer producto con el botón de arriba'}
+            </p>
           </div>
         )}
       </div>
