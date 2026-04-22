@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import { ArrowRight, CheckCircle, Star, Wrench, Calendar, Calculator } from 'lucide-react'
+import { ArrowRight, CheckCircle, Star, Wrench, Calendar, Calculator, MapPin, Phone, Mail, Clock } from 'lucide-react'
 import { createServerClient } from '@/lib/supabase-server'
 import type { Producto } from '@/types'
 
@@ -201,6 +201,81 @@ export default async function HomePage() {
         <Link href="/citas" className="btn-primary">
           Agendar Cita Ahora
         </Link>
+      </section>
+
+      {/* Ubicación */}
+      <section className="bg-brand-black text-white py-20">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <span className="badge-yellow mb-3 inline-block">VISÍTANOS</span>
+            <h2 className="font-display text-5xl tracking-wider text-white">ENCUÉNTRANOS</h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-start">
+            {/* Info de contacto */}
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-brand-yellow flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <MapPin size={20} className="text-brand-black" />
+                </div>
+                <div>
+                  <p className="font-display tracking-wider text-brand-yellow mb-1">DIRECCIÓN</p>
+                  <p className="text-gray-300">Paseo Solidaridad #9225</p>
+                  <p className="text-gray-300">Irapuato, Gto.</p>
+                  <p className="text-gray-400 text-sm mt-0.5">Salida a Salamanca</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-brand-yellow flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Phone size={20} className="text-brand-black" />
+                </div>
+                <div>
+                  <p className="font-display tracking-wider text-brand-yellow mb-1">TELÉFONOS</p>
+                  <a href="tel:4626276533" className="block text-gray-300 hover:text-brand-yellow transition-colors">462 627 65 33</a>
+                  <a href="tel:4626276534" className="block text-gray-300 hover:text-brand-yellow transition-colors">462 627 65 34</a>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-brand-yellow flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Mail size={20} className="text-brand-black" />
+                </div>
+                <div>
+                  <p className="font-display tracking-wider text-brand-yellow mb-1">CORREO</p>
+                  <a href="mailto:tecnisolidaridad@hotmail.com" className="text-gray-300 hover:text-brand-yellow transition-colors">
+                    tecnisolidaridad@hotmail.com
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-brand-yellow flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Clock size={20} className="text-brand-black" />
+                </div>
+                <div>
+                  <p className="font-display tracking-wider text-brand-yellow mb-1">HORARIO</p>
+                  <p className="text-gray-300">Lunes a Sábado</p>
+                  <p className="text-gray-300">8:00 am – 7:00 pm</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Mapa */}
+            <div className="w-full aspect-video md:aspect-auto md:h-96 overflow-hidden border-2 border-gray-700">
+              <iframe
+                src="https://maps.google.com/maps?q=Paseo+Solidaridad+9225+Irapuato+Guanajuato+Mexico&output=embed&z=16"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Ubicación Tecnicentro Solidaridad"
+              />
+            </div>
+          </div>
+        </div>
       </section>
 
       <Footer />
