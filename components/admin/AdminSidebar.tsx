@@ -10,6 +10,7 @@ import {
   Calendar,
   FileText,
   Warehouse,
+  Upload,
   LogOut,
   ExternalLink,
 } from 'lucide-react'
@@ -20,6 +21,7 @@ const navItems = [
   { href: '/admin/cotizaciones', label: 'Cotizaciones', icon: FileText },
   { href: '/admin/productos', label: 'Productos', icon: Package },
   { href: '/admin/inventario', label: 'Inventario', icon: Warehouse },
+  { href: '/admin/importar', label: 'Importar', icon: Upload },
 ]
 
 export default function AdminSidebar({ admin }: { admin: Admin }) {
