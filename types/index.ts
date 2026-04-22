@@ -72,3 +72,20 @@ export type Admin = {
 }
 
 export type EstadoCita = Cita['estado']
+
+export type Promocion = {
+  id: number
+  codigo: string
+  nombre_evento: string | null
+  descripcion: string
+  tipo: 'porcentaje' | 'monto_fijo'
+  valor: number
+  aplica_a: 'todo' | 'marca' | 'categoria'
+  aplica_valor: string | null
+  activo: boolean
+  fecha_inicio: string | null
+  fecha_fin: string | null
+  usos_maximos: number | null
+  usos_actuales: number
+  created_at: string
+}
