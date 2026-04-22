@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { CheckCircle, AlertCircle, Sparkles } from 'lucide-react'
+import { CheckCircle, AlertCircle, Sparkles, Loader2 } from 'lucide-react'
+
+const LOTE_LINEAS = 50
 
 type ProductoParsed = {
   marca: string
@@ -22,6 +24,7 @@ export default function ImportarPage() {
   const [texto, setTexto] = useState('')
   const [preview, setPreview] = useState<ProductoParsed[]>([])
   const [parseando, setParseando] = useState(false)
+  const [progreso, setProgreso] = useState<{ actual: number; total: number } | null>(null)
   const [importando, setImportando] = useState(false)
   const [resultado, setResultado] = useState<{ ok: number; err: number } | null>(null)
   const [error, setError] = useState('')
@@ -32,26 +35,53 @@ export default function ImportarPage() {
     setError('')
     setResultado(null)
     setPreview([])
+    setProgreso(null)
 
-    try {
-      const res = await fetch('/api/ai/parse-productos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texto }),
-      })
-      const data = await res.json()
-      if (!res.ok || data.error) {
-        setError(data.error ?? 'Error al conectar con la IA.')
-      } else if (data.productos.length === 0) {
-        setError('No se detectaron productos. Verifica que el formato sea correcto.')
-      } else {
-        setPreview(data.productos)
+    const lineas = texto.split('\n').filter(l => l.trim())
+    const lotes: string[] = []
+    for (let i = 0; i < lineas.length; i += LOTE_LINEAS) {
+      lotes.push(lineas.slice(i, i + LOTE_LINEAS).join('\n'))
+    }
+
+    const total = lotes.length
+    const todoProductos: ProductoParsed[] = []
+    const errores: string[] = []
+
+    for (let i = 0; i < lotes.length; i++) {
+      setProgreso({ actual: i + 1, total })
+
+      try {
+        const res = await fetch('/api/ai/parse-productos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ texto: lotes[i] }),
+        })
+        const data = await res.json()
+        if (!res.ok || data.error) {
+          errores.push(`Lote ${i + 1}: ${data.error ?? 'Error desconocido'}`)
+        } else {
+          todoProductos.push(...data.productos)
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err)
+        errores.push(`Lote ${i + 1}: ${msg}`)
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      setError(`Error de red: ${msg}`)
-    } finally {
-      setParseando(false)
+    }
+
+    setParseando(false)
+    setProgreso(null)
+
+    if (todoProductos.length === 0) {
+      setError(
+        errores.length > 0
+          ? errores.join(' | ')
+          : 'No se detectaron productos. Verifica que el formato sea correcto.'
+      )
+    } else {
+      setPreview(todoProductos)
+      if (errores.length > 0) {
+        setError(`Advertencia: ${errores.join(' | ')}`)
+      }
     }
   }
 
@@ -90,19 +120,30 @@ export default function ImportarPage() {
         <label className="text-sm font-semibold block mb-2">Datos a importar</label>
         <textarea
           value={texto}
-          onChange={e => { setTexto(e.target.value); setPreview([]); setResultado(null) }}
+          onChange={e => { setTexto(e.target.value); setPreview([]); setResultado(null); setError('') }}
           placeholder={'GOODYEAR\t110886\t275/45R21 EAG F1 ASY SUV 110W XL FP\tCHINA\t$9,963.24\nGOODYEAR\t110887\t205/55R16 EFFICIENTGRIP 91V\tMEXICO\t$3,450.00'}
           rows={8}
           className="w-full border border-gray-200 px-4 py-3 text-sm font-mono focus:outline-none focus:border-brand-black resize-y"
         />
-        <div className="flex gap-3 mt-4">
+
+        {/* Contador de líneas */}
+        {texto.trim() && (
+          <p className="text-xs text-gray-400 mt-1">
+            {texto.split('\n').filter(l => l.trim()).length} líneas detectadas
+            {' · '}{Math.ceil(texto.split('\n').filter(l => l.trim()).length / LOTE_LINEAS)} lote{Math.ceil(texto.split('\n').filter(l => l.trim()).length / LOTE_LINEAS) !== 1 ? 's' : ''} de IA
+          </p>
+        )}
+
+        <div className="flex gap-3 mt-4 items-center">
           <button
             onClick={parsearConIA}
             disabled={!texto.trim() || parseando}
             className="btn-primary text-sm py-2 px-6 disabled:opacity-50 flex items-center gap-2"
           >
-            <Sparkles size={15} />
-            {parseando ? 'Analizando con IA...' : 'Parsear con IA'}
+            {parseando
+              ? <><Loader2 size={15} className="animate-spin" /> Procesando...</>
+              : <><Sparkles size={15} /> Parsear con IA</>
+            }
           </button>
           {preview.length > 0 && (
             <button
@@ -115,6 +156,25 @@ export default function ImportarPage() {
           )}
         </div>
       </div>
+
+      {/* Barra de progreso */}
+      {progreso && (
+        <div className="card p-4 mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-semibold flex items-center gap-2">
+              <Loader2 size={14} className="animate-spin text-brand-black" />
+              Procesando lote {progreso.actual} de {progreso.total}...
+            </p>
+            <p className="text-xs text-gray-400">{Math.round((progreso.actual / progreso.total) * 100)}%</p>
+          </div>
+          <div className="w-full bg-gray-100 h-2">
+            <div
+              className="bg-brand-black h-2 transition-all duration-300"
+              style={{ width: `${(progreso.actual / progreso.total) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm mb-4">
@@ -167,7 +227,9 @@ export default function ImportarPage() {
                       }
                     </td>
                     <td className="px-4 py-2 text-xs text-gray-500">
-                      {p.origen ? <span className="badge bg-gray-100 text-gray-600 text-xs">🌎 {p.origen}</span> : <span className="text-gray-300">—</span>}
+                      {p.origen
+                        ? <span className="badge bg-gray-100 text-gray-600 text-xs">🌎 {p.origen}</span>
+                        : <span className="text-gray-300">—</span>}
                     </td>
                     <td className="px-4 py-2 text-right font-display tracking-wider">
                       ${p.precio.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
