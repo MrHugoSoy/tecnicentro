@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { Trash2 } from 'lucide-react'
 import type { Cita, EstadoCita } from '@/types'
 
 const estadoConfig: Record<EstadoCita, { label: string; color: string }> = {
@@ -32,6 +33,12 @@ export default function CitasTable({ citas: citasIniciales }: { citas: any[] }) 
   const [citas, setCitas] = useState(citasIniciales)
   const [filtro, setFiltro] = useState('')
   const [loading, setLoading] = useState<number | null>(null)
+
+  const eliminar = async (id: number) => {
+    if (!confirm('¿Eliminar esta cita permanentemente?')) return
+    const { error } = await supabase.from('citas').delete().eq('id', id)
+    if (!error) setCitas(prev => prev.filter(c => c.id !== id))
+  }
 
   const actualizarEstado = async (id: number, estado: EstadoCita) => {
     setLoading(id)
@@ -126,6 +133,15 @@ export default function CitasTable({ citas: citasIniciales }: { citas: any[] }) 
                       {loading === c.id ? '...' : estadoConfig[s].label}
                     </button>
                   ))}
+                  {c.estado === 'cancelada' && (
+                    <button
+                      onClick={() => eliminar(c.id)}
+                      className="text-xs px-2 py-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      title="Eliminar cita"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

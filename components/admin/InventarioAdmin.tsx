@@ -89,23 +89,21 @@ export default function InventarioAdmin({ productos: initial }: { productos: Pro
             >
               <Plus size={12} />
             </button>
+            {modificado && (
+              <button
+                onClick={() => guardar(p.id, p.stock)}
+                disabled={saving === p.id}
+                className="flex items-center gap-1.5 text-xs bg-brand-black text-white px-3 py-1.5 hover:bg-gray-800 disabled:opacity-50 transition-colors"
+              >
+                {saving === p.id ? '...' : <><Check size={12} /> Guardar</>}
+              </button>
+            )}
+            {saved === p.id && !modificado && (
+              <span className="text-xs text-green-600 flex items-center gap-1">
+                <Check size={12} /> Guardado
+              </span>
+            )}
           </div>
-        </td>
-        <td className="px-4 py-3">
-          {modificado && (
-            <button
-              onClick={() => guardar(p.id, p.stock)}
-              disabled={saving === p.id}
-              className="flex items-center gap-1.5 text-xs bg-brand-black text-white px-3 py-1.5 hover:bg-gray-800 disabled:opacity-50 transition-colors"
-            >
-              {saving === p.id ? '...' : saved === p.id ? <><Check size={12} /> Guardado</> : 'Guardar'}
-            </button>
-          )}
-          {saved === p.id && !modificado && (
-            <span className="text-xs text-green-600 flex items-center gap-1">
-              <Check size={12} /> Guardado
-            </span>
-          )}
         </td>
       </tr>
     )
@@ -125,7 +123,6 @@ export default function InventarioAdmin({ productos: initial }: { productos: Pro
                 <tr>
                   <th className="text-left px-4 py-2 font-semibold text-gray-600">Producto</th>
                   <th className="text-left px-4 py-2 font-semibold text-gray-600">Stock</th>
-                  <th className="px-4 py-2"></th>
                 </tr>
               </thead>
               <tbody>{stockBajo.map(renderFila)}</tbody>
