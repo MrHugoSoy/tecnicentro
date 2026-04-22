@@ -3,15 +3,19 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Plus, Minus, Check } from 'lucide-react'
+import Image from 'next/image'
 
 type ProductoStock = {
   id: number
   nombre: string
+  marca: string
+  codigo: string | null
   medida: string
   categoria: string
   origen: string | null
   stock: number
   activo: boolean
+  imagen_url: string | null
 }
 
 export default function InventarioAdmin({ productos: initial }: { productos: ProductoStock[] }) {
@@ -65,10 +69,31 @@ export default function InventarioAdmin({ productos: initial }: { productos: Pro
 
     return (
       <tr key={p.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${modificado ? 'bg-yellow-50' : ''}`}>
-        <td className="px-4 py-3">
-          <p className="font-semibold text-sm">{p.nombre}</p>
-          <p className="text-xs text-gray-400">{p.medida} · {p.categoria}{p.origen ? ` · ${p.origen}` : ''}</p>
+        {/* Miniatura */}
+        <td className="pl-4 py-3 w-14 hidden sm:table-cell">
+          <div className="w-10 h-10 bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+            {p.imagen_url ? (
+              <Image src={p.imagen_url} alt={p.nombre} width={40} height={40} className="object-contain" />
+            ) : (
+              <span className="text-lg text-gray-300">⭕</span>
+            )}
+          </div>
         </td>
+
+        {/* Info del producto */}
+        <td className="px-4 py-3">
+          <p className="font-semibold text-sm leading-tight">{p.nombre}</p>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+            <span className="text-xs text-gray-500">{p.marca}</span>
+            {p.codigo && <span className="text-xs text-gray-400">#{p.codigo}</span>}
+            <span className="text-xs text-gray-400">·</span>
+            <span className="text-xs font-medium text-brand-black">{p.medida}</span>
+            <span className="text-xs text-gray-400">· {p.categoria}</span>
+            {p.origen && <span className="text-xs text-gray-400">· 🌎 {p.origen}</span>}
+          </div>
+        </td>
+
+        {/* Control de stock */}
         <td className="px-4 py-3">
           <div className="flex items-center gap-2">
             <button
@@ -122,6 +147,7 @@ export default function InventarioAdmin({ productos: initial }: { productos: Pro
             <table className="w-full text-sm">
               <thead className="bg-red-50 border-b">
                 <tr>
+                  <th className="hidden sm:table-cell px-4 py-2 w-14"></th>
                   <th className="text-left px-4 py-2 font-semibold text-gray-600">Producto</th>
                   <th className="text-left px-4 py-2 font-semibold text-gray-600">Stock</th>
                 </tr>
@@ -141,9 +167,9 @@ export default function InventarioAdmin({ productos: initial }: { productos: Pro
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
+                <th className="hidden sm:table-cell px-4 py-2 w-14"></th>
                 <th className="text-left px-4 py-2 font-semibold text-gray-600">Producto</th>
                 <th className="text-left px-4 py-2 font-semibold text-gray-600">Stock</th>
-                <th className="px-4 py-2"></th>
               </tr>
             </thead>
             <tbody>{stockOk.map(renderFila)}</tbody>
