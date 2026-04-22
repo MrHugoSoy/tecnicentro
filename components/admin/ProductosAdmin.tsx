@@ -16,6 +16,7 @@ const defaultForm: FormData = {
   precio_instalacion: 0,
   stock: 0,
   imagen_url: null,
+  codigo: null,
   origen: null,
   categoria: 'llanta',
   activo: true,
@@ -48,7 +49,7 @@ export default function ProductosAdmin({ productos: initial }: { productos: Prod
       nombre: p.nombre, marca: p.marca, medida: p.medida,
       descripcion: p.descripcion ?? '', precio: p.precio,
       precio_instalacion: p.precio_instalacion, stock: p.stock,
-      imagen_url: p.imagen_url, origen: p.origen, categoria: p.categoria, activo: p.activo,
+      imagen_url: p.imagen_url, codigo: p.codigo, origen: p.origen, categoria: p.categoria, activo: p.activo,
     })
     setImageFile(null)
     setImagePreview(p.imagen_url ?? null)
@@ -153,6 +154,10 @@ export default function ProductosAdmin({ productos: initial }: { productos: Prod
               <div>
                 <label className="text-sm font-semibold block mb-1">Marca</label>
                 <input className="input-field" value={form.marca} onChange={e => setForm(f => ({ ...f, marca: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-sm font-semibold block mb-1">Código (N° de parte)</label>
+                <input className="input-field" value={form.codigo ?? ''} onChange={e => setForm(f => ({ ...f, codigo: e.target.value || null }))} placeholder="Ej: 110886" />
               </div>
               <div>
                 <label className="text-sm font-semibold block mb-1">Medida * (ej: 205/55R16)</label>

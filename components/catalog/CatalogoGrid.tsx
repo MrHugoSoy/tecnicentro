@@ -112,6 +112,7 @@ function ProductoCard({ producto: p }: { producto: Producto }) {
           )}
         </div>
         <h3 className="font-display text-lg tracking-wider mb-1 leading-tight">{p.nombre}</h3>
+        {p.codigo && <p className="text-xs text-gray-400 mb-1">#{p.codigo}</p>}
         {p.descripcion && (
           <p className="text-xs text-gray-500 mb-3 line-clamp-2">{p.descripcion}</p>
         )}

@@ -6,6 +6,7 @@ import { CheckCircle, AlertCircle } from 'lucide-react'
 
 type ProductoParsed = {
   marca: string
+  codigo: string | null
   nombre: string
   medida: string
   origen: string | null
@@ -31,7 +32,7 @@ function parsearLinea(linea: string): ProductoParsed | null {
   if (cols.length < 5) return null
 
   const marca = cols[0]
-  // cols[1] = codigo (ignorar)
+  const codigo = cols[1] || null
   const nombre = cols[2]
   // cols[3] = origen interno (ignorar — viene vacío o es código)
   const precio = parsearPrecio(cols[4])
@@ -40,6 +41,7 @@ function parsearLinea(linea: string): ProductoParsed | null {
 
   return {
     marca,
+    codigo,
     nombre,
     medida: extraerMedida(nombre),
     origen: null,
@@ -169,6 +171,7 @@ export default function ImportarPage() {
                 <tr className="border-b bg-gray-50">
                   <th className="text-left px-4 py-2 font-semibold text-gray-600">#</th>
                   <th className="text-left px-4 py-2 font-semibold text-gray-600">Marca</th>
+                  <th className="text-left px-4 py-2 font-semibold text-gray-600">Código</th>
                   <th className="text-left px-4 py-2 font-semibold text-gray-600">Nombre</th>
                   <th className="text-left px-4 py-2 font-semibold text-gray-600">Medida</th>
                   <th className="text-right px-4 py-2 font-semibold text-gray-600">Precio</th>
@@ -179,6 +182,7 @@ export default function ImportarPage() {
                   <tr key={i} className="hover:bg-gray-50">
                     <td className="px-4 py-2 text-gray-400 text-xs">{i + 1}</td>
                     <td className="px-4 py-2 text-xs text-gray-500">{p.marca}</td>
+                    <td className="px-4 py-2 text-xs text-gray-400">{p.codigo ?? '—'}</td>
                     <td className="px-4 py-2 font-medium max-w-xs truncate">{p.nombre}</td>
                     <td className="px-4 py-2">
                       {p.medida
