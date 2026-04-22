@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { CheckCircle, AlertCircle } from 'lucide-react'
+import { CheckCircle, AlertCircle, Trash2 } from 'lucide-react'
 
 type ProductoParsed = {
   marca: string
@@ -29,22 +29,27 @@ function extraerMedida(nombre: string): string {
 
 function parsearLinea(linea: string): ProductoParsed | null {
   const cols = linea.split('\t').map(c => c.trim())
-  if (cols.length < 5) return null
+
+  // Formato 5 cols: MARCA | CODIGO | NOMBRE | ORIGEN | PRECIO
+  // Formato 4 cols: MARCA | CODIGO | NOMBRE | PRECIO
+  if (cols.length < 4) return null
 
   const marca = cols[0]
   const codigo = cols[1] || null
   const nombre = cols[2]
-  // cols[3] = origen interno (ignorar — viene vacío o es código)
-  const precio = parsearPrecio(cols[4])
+
+  // Detectar si col[3] es el precio (formato 4 cols) o el origen (formato 5 cols)
+  const esPrecioEnCol3 = cols.length === 4 || /[$\d]/.test(cols[3])
+  const precio = parsearPrecio(esPrecioEnCol3 ? cols[3] : cols[4] ?? '')
 
   if (!marca || !nombre || precio <= 0) return null
 
   return {
     marca,
     codigo,
-    nombre,
+    nombre,       // solo col[2], nunca incluye origen
     medida: extraerMedida(nombre),
-    origen: null,
+    origen: null, // cols[3] se ignora siempre
     precio,
     categoria: 'llanta',
     precio_instalacion: 0,
@@ -60,6 +65,13 @@ export default function ImportarPage() {
   const [importando, setImportando] = useState(false)
   const [resultado, setResultado] = useState<{ ok: number; err: number } | null>(null)
   const [error, setError] = useState('')
+
+  // Estado modal borrar inventario
+  const [modalBorrar, setModalBorrar] = useState(false)
+  const [passConfirm, setPassConfirm] = useState('')
+  const [borrando, setBorrando] = useState(false)
+  const [errorBorrar, setErrorBorrar] = useState('')
+  const [borradoOk, setBorradoOk] = useState(false)
 
   const parsear = () => {
     setResultado(null)
@@ -78,7 +90,6 @@ export default function ImportarPage() {
     setError('')
     setResultado(null)
 
-    // Insertar en lotes de 50
     let ok = 0
     let err = 0
     const loteSize = 50
@@ -86,19 +97,48 @@ export default function ImportarPage() {
     for (let i = 0; i < preview.length; i += loteSize) {
       const lote = preview.slice(i, i + loteSize)
       const { error: insertErr } = await supabase.from('productos').insert(lote)
-      if (insertErr) {
-        err += lote.length
-      } else {
-        ok += lote.length
-      }
+      if (insertErr) err += lote.length
+      else ok += lote.length
     }
 
     setResultado({ ok, err })
-    if (ok > 0) {
-      setPreview([])
-      setTexto('')
-    }
+    if (ok > 0) { setPreview([]); setTexto('') }
     setImportando(false)
+  }
+
+  const confirmarBorrado = async () => {
+    if (!passConfirm) return
+    setBorrando(true)
+    setErrorBorrar('')
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user?.email) {
+      setErrorBorrar('No se pudo obtener la sesión.')
+      setBorrando(false)
+      return
+    }
+
+    const { error: authErr } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: passConfirm,
+    })
+
+    if (authErr) {
+      setErrorBorrar('Contraseña incorrecta.')
+      setBorrando(false)
+      return
+    }
+
+    const { error: delErr } = await supabase.from('productos').delete().neq('id', 0)
+
+    if (delErr) {
+      setErrorBorrar('Error al borrar: ' + delErr.message)
+    } else {
+      setBorradoOk(true)
+      setModalBorrar(false)
+    }
+    setPassConfirm('')
+    setBorrando(false)
   }
 
   return (
@@ -139,7 +179,6 @@ export default function ImportarPage() {
         </div>
       </div>
 
-      {/* Errores de parseo */}
       {error && (
         <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm mb-4">
           <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
@@ -147,7 +186,6 @@ export default function ImportarPage() {
         </div>
       )}
 
-      {/* Resultado de importación */}
       {resultado && (
         <div className={`flex items-start gap-2 px-4 py-3 text-sm mb-4 border ${resultado.err === 0 ? 'bg-green-50 border-green-200 text-green-700' : 'bg-yellow-50 border-yellow-200 text-yellow-700'}`}>
           <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
@@ -158,9 +196,16 @@ export default function ImportarPage() {
         </div>
       )}
 
+      {borradoOk && (
+        <div className="flex items-start gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm mb-4">
+          <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
+          Inventario borrado correctamente.
+        </div>
+      )}
+
       {/* Preview */}
       {preview.length > 0 && (
-        <div className="card overflow-hidden">
+        <div className="card overflow-hidden mb-8">
           <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
             <p className="font-semibold text-sm">{preview.length} productos detectados</p>
             <p className="text-xs text-gray-400">Revisa antes de importar</p>
@@ -197,6 +242,58 @@ export default function ImportarPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Zona peligrosa */}
+      <div className="border border-red-200 p-6 mt-8">
+        <h2 className="font-display tracking-wider text-red-600 mb-1">ZONA PELIGROSA</h2>
+        <p className="text-sm text-gray-500 mb-4">Esta acción elimina todos los productos del catálogo de forma permanente.</p>
+        <button
+          onClick={() => { setModalBorrar(true); setErrorBorrar(''); setPassConfirm(''); setBorradoOk(false) }}
+          className="flex items-center gap-2 bg-red-600 text-white text-sm font-semibold px-4 py-2 hover:bg-red-700 transition-colors"
+        >
+          <Trash2 size={15} /> Borrar todo el inventario
+        </button>
+      </div>
+
+      {/* Modal confirmación */}
+      {modalBorrar && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-sm p-6">
+            <h3 className="font-display text-xl tracking-wider text-red-600 mb-2">CONFIRMAR BORRADO</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Se eliminarán <strong>todos los productos</strong> permanentemente. Ingresa tu contraseña para continuar.
+            </p>
+            <input
+              type="password"
+              className="input-field mb-3"
+              placeholder="Tu contraseña"
+              value={passConfirm}
+              onChange={e => { setPassConfirm(e.target.value); setErrorBorrar('') }}
+              autoFocus
+            />
+            {errorBorrar && (
+              <p className="text-xs text-red-600 mb-3 flex items-center gap-1">
+                <AlertCircle size={13} /> {errorBorrar}
+              </p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setModalBorrar(false)}
+                className="flex-1 border border-gray-300 text-sm py-2 hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarBorrado}
+                disabled={!passConfirm || borrando}
+                className="flex-1 bg-red-600 text-white text-sm py-2 hover:bg-red-700 disabled:opacity-50 transition-colors font-semibold"
+              >
+                {borrando ? 'Verificando...' : 'Borrar todo'}
+              </button>
+            </div>
           </div>
         </div>
       )}
